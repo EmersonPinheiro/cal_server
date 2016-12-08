@@ -18,6 +18,7 @@
 
 #include "server.h"
 
+char *param;
 char buf[256];
 
 /* HTTP response and header for a successful request.  */
@@ -132,12 +133,16 @@ static void handle_connection (int connection_fd)
   char buffer[256];
   ssize_t bytes_read;
 
+
+
   /* Read some data from the client.  */
   bytes_read = read (connection_fd, buffer, sizeof (buffer) - 1);
   if (bytes_read > 0) {
     char method[sizeof (buffer)];
     char url[sizeof (buffer)];
     char protocol[sizeof (buffer)];
+    char *aux;
+    
 
     /* Some data was read successfully.  NUL-terminate the buffer so
        we can use string operations on it.  */
@@ -145,10 +150,20 @@ static void handle_connection (int connection_fd)
     /* The first line the client sends is the HTTP request, which is
        composed of a method, the requested page, and the protocol
        version.  */
-    
-    sscanf (buffer, "%s %s %s", method, url, protocol);
 
-strcpy( buf, url );
+     sscanf (buffer, "%s %s %s", method, url, protocol);
+
+     if(strstr(url, "?") != NULL){
+
+        strtok(url, "?");
+
+	strcpy(buf, strtok(NULL, "?"));
+
+        strcpy(url, strtok(url, "?"));
+     }
+
+
+
 
     /* The client may send various header information following the
        request.  For this HTTP implementation, we don't care about it.

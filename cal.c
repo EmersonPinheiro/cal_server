@@ -49,6 +49,35 @@ void module_generate (int fd)
     rval = dup2 (fd, STDERR_FILENO);
     if (rval == -1)
       system_error ("dup2");
+
+    /* Parsing the parameters. */
+	if(strstr(buf, "ano") != NULL){
+
+		if(strstr(param, "mes") != NULL){
+		    //printf("Mes encontrado.\n");
+		    aux = strtok(param, "&");
+		    ano_aux = aux;
+		    while (aux != NULL) {
+		        mes_aux = strdup(aux);                
+			aux = strtok (NULL, "\0");
+		
+		    }
+		    aux = strtok(mes_aux, "=");
+		    while (aux != NULL) {
+		        mes = strdup(aux);
+		        aux = strtok (NULL, "\0");
+		    }
+		}
+		else{
+		    ano_aux = param;
+		}
+		aux = strtok(ano_aux, "=");
+		while (aux != NULL) {
+		    ano = strdup(aux);
+		    aux = strtok (NULL, "\0");
+		}
+    }
+
     /* Run cal to show the calendar.  */
 
 
