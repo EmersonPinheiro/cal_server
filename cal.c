@@ -19,6 +19,9 @@ extern char buf[256];
 static char* page_start =
   "<html>\n"
   " <body>\n"
+  " <h1>Calendário</h1>\n"
+  " <form action='cal' method='get'>Ano:<br><input name='ano'><br>Mês:<br><input name='mes'><br>\n"
+  "   <input type='submit' value='Consultar'></form>\n"
   "  <pre>\n";
 
 /* HTML source for the end of the page we generate.  */
@@ -32,15 +35,16 @@ void module_generate (int fd)
 {
   pid_t child_pid;
   int rval;
+  char *ano = NULL, *mes = NULL;
 
   /* Write the start of the page.  */
   write (fd, page_start, strlen (page_start));
+
+
   /* Fork a child process.  */
   child_pid = fork ();
   if (child_pid == 0) {
     /* This is the child process.  */
-    /* Set up an argumnet list for the invocation of cal.  */
-    char* argv[] = { "/usr/bin/cal", "-h", NULL };
 
     /* Duplicate stdout and stderr to send data to the client socket.  */
     rval = dup2 (fd, STDOUT_FILENO);
@@ -49,14 +53,41 @@ void module_generate (int fd)
     rval = dup2 (fd, STDERR_FILENO);
     if (rval == -1)
       system_error ("dup2");
+
+    /* Parsing the parameters. */
+    
+    if(strstr(buf, "ano") != NULL){
+        if(strstr(buf, "mes") != NULL){
+            ano = strtok(buf, "&");
+            mes = strtok(NULL, "?");
+            strtok(mes, "=");
+            mes = strtok(NULL, "=");
+        }
+        strtok(buf, "=");
+        ano = strtok(NULL, "=");
+    }
+
+/* Set up an argumnet list for the invocation of cal.  */
+
+    char* argv[] = { "/usr/bin/cal", "-h", mes, ano, NULL };
+
+if(mes==NULL){
+	argv[2]="2016";
+		if(ano!=NULL){
+			argv[2]=ano;
+		}
+	argv[3]=NULL;
+}
+
+if(mes!=NULL && ano==NULL){
+	argv[3]="2016";
+	argv[2]=mes;
+}
+
     /* Run cal to show the calendar.  */
 
+    execv (argv[0], argv);
 
-char* argumentos[] = { "/bin/echo", buf, NULL };
-    execv(argumentos[0], argumentos);
-
-
-    //execv (argv[0], argv);
     /* A call to execv does not return unless an error occurred.  */
     system_error ("execv");
   }
